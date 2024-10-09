@@ -1,3 +1,39 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">-->
+<!--    <title>User and Posts</title>-->
+<!--</head>-->
+<!--<body>-->
+<!--    <h1>User Management</h1>-->
+
+<!--    <form action="{{ url_for('add_user') }}" method="POST">-->
+<!--        <input type="text" name="username" placeholder="Enter username" required>-->
+<!--        <button type="submit">Add User</button>-->
+<!--    </form>-->
+
+<!--    <h2>Users</h2>-->
+<!--    <ul>-->
+<!--        {% for user in users %}-->
+<!--            <li>-->
+<!--                {{ user.username }}-->
+<!--                <form action="{{ url_for('add_post', user_id=user.id) }}" method="POST">-->
+<!--                    <input type="text" name="title" placeholder="Post title" required>-->
+<!--                    <textarea name="content" placeholder="Post content" required></textarea>-->
+<!--                    <button type="submit">Add Post</button>-->
+<!--                </form>-->
+<!--                <ul>-->
+<!--                    {% for post in user.posts %}-->
+<!--                        <li>{{ post.title }}: {{ post.content }}</li>-->
+<!--                    {% endfor %}-->
+<!--                </ul>-->
+<!--            </li>-->
+<!--        {% endfor %}-->
+<!--    </ul>-->
+<!--</body>-->
+<!--</html>-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,30 +43,36 @@
     <title>User and Posts</title>
 </head>
 <body>
-    <h1>User Management</h1>
+    <div class="content-wrapper">
+        <section class="user-management">
+            <h1>User Management</h1>
 
-    <form action="{{ url_for('add_user') }}" method="POST">
-        <input type="text" name="username" placeholder="Enter username" required>
-        <button type="submit">Add User</button>
-    </form>
+            <form action="{{ url_for('add_user') }}" method="POST" class="form-inline">
+                <input type="text" name="username" placeholder="Enter username" required>
+                <button type="submit">Add User</button>
+            </form>
 
-    <h2>Users</h2>
-    <ul>
-        {% for user in users %}
-            <li>
-                {{ user.username }}
-                <form action="{{ url_for('add_post', user_id=user.id) }}" method="POST">
-                    <input type="text" name="title" placeholder="Post title" required>
-                    <textarea name="content" placeholder="Post content" required></textarea>
-                    <button type="submit">Add Post</button>
-                </form>
-                <ul>
-                    {% for post in user.posts %}
+            <h2>Users and their Posts</h2>
+            <ul class="user-list">
+                {% for user in users %}
+                <li class="user-item">
+                    <strong>{{ user.username }}</strong>
+
+                    <form action="{{ url_for('add_post', user_id=user.id) }}" method="POST" class="form-post">
+                        <input type="text" name="title" placeholder="Post title" required>
+                        <textarea name="content" placeholder="Post content" required></textarea>
+                        <button type="submit">Add Post</button>
+                    </form>
+
+                    <ul class="post-list">
+                        {% for post in user.posts %}
                         <li>{{ post.title }}: {{ post.content }}</li>
-                    {% endfor %}
-                </ul>
-            </li>
-        {% endfor %}
-    </ul>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+    </div>
 </body>
 </html>

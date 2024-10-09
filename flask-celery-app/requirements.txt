@@ -1,0 +1,6 @@
+Flask==2.0.2
+Flask-SQLAlchemy==2.5.1
+gunicorn==20.1.0
+gevent==24.2.1
+celery==5.4.0
+redis==5.1.0

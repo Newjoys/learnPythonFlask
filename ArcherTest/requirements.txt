@@ -1,0 +1,15 @@
+# Python 包依赖列表
+# Flask
+# gunicorn
+# celery
+# pika
+
+Flask==2.3.2              # Flask 框架
+Flask-SQLAlchemy==2.5.1   # SQLAlchemy ORM
+Flask-Migrate==3.1.0      # 数据库迁移工具
+Celery==5.4.0             # Celery
+pika==1.3.1               # RabbitMQ 的 Python 客户端
+redis==4.6.0              # Redis 的 Python 客户端
+gunicorn==20.1.0          # WSGI HTTP 服务器
+requests==2.31.0          # HTTP 请求库（可选，通常用于调用外部 API）
+pytest==7.2.2             # 测试框架（可选）
