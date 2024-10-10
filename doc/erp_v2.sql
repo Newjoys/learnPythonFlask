@@ -156,6 +156,55 @@ CREATE TABLE inventory_record (
     FOREIGN KEY (manager_id) REFERENCES emp_info(emp_id) ON DELETE CASCADE
 );
 
+-- Role-Based Access Control系统权限管理
+-- 系统用户表
+CREATE TABLE sys_user (
+    user_id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,  -- 加密存储
+    role_id INT,  -- 外键，指向角色表
+    dept_id INT,  -- 部门ID，外键指向部门表
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    delete_flag BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (role_id) REFERENCES sys_role(role_id) ON DELETE CASCADE,
+    FOREIGN KEY (dept_id) REFERENCES dept(dept_id) ON DELETE CASCADE
+);
+
+-- 系统角色表
+CREATE TABLE sys_role (
+    -- 请购员”、“部门经理”、“采购员”、“总经理”
+    role_id INT PRIMARY KEY AUTO_INCREMENT,
+    role_name VARCHAR(50) NOT NULL UNIQUE,  -- 角色名称，如"请购员"
+    description TEXT,  -- 角色描述，如"负责创建请购单并提交审批"
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    delete_flag BOOLEAN DEFAULT FALSE
+);
+
+-- 权限表
+CREATE TABLE sys_permission (
+    permission_id INT PRIMARY KEY AUTO_INCREMENT,
+    permission_name VARCHAR(50) NOT NULL UNIQUE,  -- 权限名称，如"CREATE_REQUISITION_ORDER"
+    description TEXT,  -- 权限描述，如"创建请购单的权限"
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    delete_flag BOOLEAN DEFAULT FALSE
+);
+-- 系统用户权限表
+CREATE TABLE role_permission_relation (
+    role_permission_id INT PRIMARY KEY AUTO_INCREMENT,  -- 自增的主键
+    role_id INT NOT NULL,  -- 外键，指向角色表（role表）
+    permission_id INT NOT NULL,  -- 外键，指向权限表（permission表）
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    delete_flag BOOLEAN DEFAULT FALSE,
+    UNIQUE (role_id, permission_id),  -- 确保每个角色和权限的组合是唯一的
+    FOREIGN KEY (role_id) REFERENCES sys_role(role_id),
+    FOREIGN KEY (permission_id) REFERENCES sys_permission(permission_id)
+);
+
+
 -- 插入部门数据
 INSERT INTO dept (name, parent_id, create_at, update_at, del_flag) VALUES
 ('技术部', NULL, NOW(), NOW(), 0),
