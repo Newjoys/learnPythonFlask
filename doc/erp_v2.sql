@@ -18,13 +18,14 @@ CREATE TABLE dept_role (
     create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 创建时间
     update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 更新时间
     del_flag BOOLEAN DEFAULT 0,               -- 删除标记（0：未删除，1：已删除）
-    FOREIGN KEY (dept_id) REFERENCES dept(dept_id) ON DELETE SET NULL
+    FOREIGN KEY (dept_id) REFERENCES dept(dept_id) ON DELETE SET NULL,
+    INDEX idx_dept_role_name (name)    -- 查询角色
 );
 
 -- 员工信息表：存储员工的个人信息
 CREATE TABLE emp_info (
     emp_id INT PRIMARY KEY AUTO_INCREMENT,      -- 员工ID（主键）
-    emp_no VARCHAR(100),                        -- 员工编号
+    emp_no VARCHAR(100) NOT NULL,                        -- 员工编号
     name VARCHAR(255) NOT NULL,                 -- 员工姓名
     position VARCHAR(255),                      -- 职位
     dept_id INT,                               -- 所属部门ID（外键）
@@ -38,7 +39,10 @@ CREATE TABLE emp_info (
     update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 更新时间
     del_flag BOOLEAN DEFAULT 0,                 -- 删除标记（0：未删除，1：已删除）
     FOREIGN KEY (dept_id) REFERENCES dept(dept_id) ON DELETE SET NULL,
-    FOREIGN KEY (manager_id) REFERENCES emp_info(emp_id) ON DELETE SET NULL
+    FOREIGN KEY (manager_id) REFERENCES emp_info(emp_id) ON DELETE SET NULL,
+    INDEX idx_emp_info_emp_no (emp_no),
+    INDEX idx_emp_info_dept_id (dept_id),
+    INDEX idx_emp_info_phone (phone)
 );
 
 -- 部门员工关联表：存储员工与多个部门的关联关系
@@ -51,7 +55,10 @@ CREATE TABLE dept_emp (
     update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 更新时间
     del_flag BOOLEAN DEFAULT 0,                 -- 删除标记（0：未删除，1：已删除）
     FOREIGN KEY (emp_id) REFERENCES emp_info(emp_id) ON DELETE CASCADE,
-    FOREIGN KEY (dept_id) REFERENCES dept(dept_id) ON DELETE CASCADE
+    FOREIGN KEY (dept_id) REFERENCES dept(dept_id) ON DELETE CASCADE,
+    INDEX idx_dept_emp_emp_id (emp_id),
+    INDEX idx_dept_emp_dept_id (dept_id),
+    INDEX idx_dept_emp_join_date (join_date) -- ?关联表和信息表建立索引？
 );
 
 -- 供应商基础信息表：存储供应商的基本信息
@@ -69,7 +76,9 @@ CREATE TABLE supplier_info (
     payment_terms TEXT,                          -- 付款条款
     create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 创建时间
     update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 更新时间
-    del_flag BOOLEAN DEFAULT 0                   -- 删除标记（0：未删除，1：已删除）
+    del_flag BOOLEAN DEFAULT 0,                   -- 删除标记（0：未删除，1：已删除）
+    INDEX idx_supplier_info_company_name (company_name),  -- 按名称查找供应商
+    INDEX idx_supplier_info_supplier_no (supplier_no)
 );
 
 -- 物料类型表：存储物料的类型信息
@@ -79,7 +88,8 @@ CREATE TABLE material_type (
     description TEXT,                          -- 描述
     create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 创建时间
     update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 更新时间
-    del_flag BOOLEAN DEFAULT 0                 -- 删除标记（0：未删除，1：已删除）
+    del_flag BOOLEAN DEFAULT 0,                 -- 删除标记（0：未删除，1：已删除）
+    INDEX idx_material_type_name (name)         -- 物料分类
 );
 
 -- 物料信息表：存储物料的详细信息
@@ -96,7 +106,11 @@ CREATE TABLE material_info (
     create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 创建时间
     update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 更新时间
     del_flag BOOLEAN DEFAULT 0,                 -- 删除标记（0：未删除，1：已删除）
-    FOREIGN KEY (type_id) REFERENCES material_type(type_id) ON DELETE SET NULL
+    FOREIGN KEY (type_id) REFERENCES material_type(type_id) ON DELETE SET NULL,
+    INDEX idx_material_info_code (code),
+    INDEX idx_material_info_name (name),
+    INDEX idx_material_info_type_id (type_id),
+    INDEX idx_material_info_current_stock (current_stock)     -- 找低库存或高库存物
 );
 
 -- 供应商物料关联表：存储供应商与物料的关联关系
@@ -110,7 +124,10 @@ CREATE TABLE supplier_material (
     update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 更新时间
     del_flag BOOLEAN DEFAULT 0,                   -- 删除标记（0：未删除，1：已删除）
     FOREIGN KEY (supplier_id) REFERENCES supplier_info(supplier_id) ON DELETE CASCADE,
-    FOREIGN KEY (material_id) REFERENCES material_info(material_id) ON DELETE CASCADE
+    FOREIGN KEY (material_id) REFERENCES material_info(material_id) ON DELETE CASCADE,
+    INDEX idx_supplier_material_supplier_id (supplier_id),
+    INDEX idx_supplier_material_material_id (material_id)    -- 找某物料的供应商
+
 );
 
 -- 采购单业务表：存储采购单的业务信息
@@ -119,12 +136,15 @@ CREATE TABLE purchase_order (
     supplier_id INT NOT NULL,                   -- 供应商ID（外键）
     status TINYINT NOT NULL,                   -- 订单状态（枚举：已审批、已签订、部分入库、全部入库）
     complete_date DATE,                        -- 订单完成日期
-    manager_id INT,                            -- 负责人ID（外键）
+    emp_id INT,                            -- 负责人ID（外键）
     create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 创建时间
     update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 更新时间
     del_flag BOOLEAN DEFAULT 0,                  -- 删除标记（0：未删除，1：已删除）
     FOREIGN KEY (supplier_id) REFERENCES supplier_info(supplier_id) ON DELETE CASCADE,
-    FOREIGN KEY (manager_id) REFERENCES emp_info(emp_id) ON DELETE SET NULL
+    FOREIGN KEY (emp_id) REFERENCES emp_info(emp_id) ON DELETE SET NULL,
+    INDEX idx_purchase_order_supplier_id (supplier_id),
+    INDEX idx_purchase_order_manager_id (emp_id),
+    INDEX idx_purchase_order_status (status)
 );
 
 -- 采购单明细表：存储采购单的详细信息
@@ -138,7 +158,9 @@ CREATE TABLE purchase_order_detail (
     update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 更新时间
     del_flag BOOLEAN DEFAULT 0,                  -- 删除标记（0：未删除，1：已删除）
     FOREIGN KEY (order_id) REFERENCES purchase_order(order_id) ON DELETE CASCADE,
-    FOREIGN KEY (material_id) REFERENCES material_info(material_id) ON DELETE CASCADE
+    FOREIGN KEY (material_id) REFERENCES material_info(material_id) ON DELETE CASCADE,
+    INDEX idx_purchase_order_detail_order_id (order_id),
+    INDEX idx_purchase_order_detail_material_id (material_id)
 );
 
 -- 库存记录表：存储库存变更记录
@@ -153,7 +175,10 @@ CREATE TABLE inventory_record (
     update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 更新时间
     del_flag BOOLEAN DEFAULT 0,                   -- 删除标记（0：未删除，1：已删除）
     FOREIGN KEY (material_id) REFERENCES material_info(material_id) ON DELETE CASCADE,
-    FOREIGN KEY (manager_id) REFERENCES emp_info(emp_id) ON DELETE CASCADE
+    FOREIGN KEY (manager_id) REFERENCES emp_info(emp_id) ON DELETE CASCADE,
+    INDEX idx_inventory_record_material_id (material_id),     -- 物料和库存变动记录
+    INDEX idx_inventory_record_manager_id (manager_id),       -- 库存变动-管理员
+    INDEX idx_inventory_record_change_date (change_date)
 );
 
 -- Role-Based Access Control系统权限管理
@@ -203,79 +228,3 @@ CREATE TABLE role_permission_relation (
     FOREIGN KEY (role_id) REFERENCES sys_role(role_id),
     FOREIGN KEY (permission_id) REFERENCES sys_permission(permission_id)
 );
-
-
--- 插入部门数据
-INSERT INTO dept (name, parent_id, create_at, update_at, del_flag) VALUES
-('技术部', NULL, NOW(), NOW(), 0),
-('市场部', NULL, NOW(), NOW(), 0),
-('财务部', NULL, NOW(), NOW(), 0),
-('人事部', NULL, NOW(), NOW(), 0);
-
--- 插入部门角色数据
-INSERT INTO dept_role (name, dept_id, create_at, update_at, del_flag) VALUES
-('开发工程师', 1, NOW(), NOW(), 0),
-('测试工程师', 1, NOW(), NOW(), 0),
-('市场经理', 2, NOW(), NOW(), 0),
-('财务主管', 3, NOW(), NOW(), 0),
-('人事专员', 4, NOW(), NOW(), 0);
-
--- 插入员工信息数据
-INSERT INTO emp_info (emp_no, name, position, dept_id, manager_id, email, phone, hire_date, birth_date, salary, create_at, update_at, del_flag) VALUES
-('E001', '张三', '开发工程师', 1, NULL, 'zhangsan@example.com', '13800000001', '2023-01-01', '1990-01-01', 10000.00, NOW(), NOW(), 0),
-('E002', '李四', '测试工程师', 1, 1, 'lisi@example.com', '13800000002', '2023-01-02', '1992-02-02', 9000.00, NOW(), NOW(), 0),
-('E003', '王五', '市场经理', 2, NULL, 'wangwu@example.com', '13800000003', '2023-01-03', '1991-03-03', 12000.00, NOW(), NOW(), 0),
-('E004', '赵六', '财务主管', 3, NULL, 'zhaoliu@example.com', '13800000004', '2023-01-04', '1989-04-04', 11000.00, NOW(), NOW(), 0),
-('E005', '钱七', '人事专员', 4, 4, 'qianqi@example.com', '13800000005', '2023-01-05', '1993-05-05', 8000.00, NOW(), NOW(), 0);
-
--- 插入供应商数据
-INSERT INTO supplier_info (supplier_no, company_name, short_name, tax_no, contact, phone, address, bank_acc, bank_name, payment_terms, create_at, update_at, del_flag) VALUES
-('S001', '华为技术有限公司', '华为', '1234567890', '张经理', '13900000001', '深圳市华为大厦', '123456789', '华夏银行', '30天内付款', NOW(), NOW(), 0),
-('S002', '阿里巴巴集团', '阿里', '0987654321', '李经理', '13900000002', '杭州市阿里大厦', '987654321', '招商银行', '30天内付款', NOW(), NOW(), 0);
-
--- 插入物料类型数据
-INSERT INTO material_type (name, description, create_at, update_at, del_flag) VALUES
-('电子元件', '用于电子设备的元件', NOW(), NOW(), 0),
-('机械配件', '用于机械设备的配件', NOW(), NOW(), 0),
-('办公用品', '日常办公所需用品', NOW(), NOW(), 0);
-
--- 插入物料信息数据
-INSERT INTO material_info (code, name, type_id, spec, unit, min_stock, current_stock, avg_price, create_at, update_at, del_flag) VALUES
-('M001', '电阻', 1, '1KΩ', '个', 100, 500, 0.1, NOW(), NOW(), 0),
-('M002', '电容', 1, '100μF', '个', 50, 200, 0.5, NOW(), NOW(), 0),
-('M003', '齿轮', 2, '标准', '个', 20, 100, 5.0, NOW(), NOW(), 0),
-('M004', '打印纸', 3, 'A4', '包', 10, 50, 20.0, NOW(), NOW(), 0);
-
--- 插入采购单数据
-INSERT INTO purchase_order (supplier_id, status, complete_date, manager_id, create_at, update_at, del_flag) VALUES
-(1, 1, '2023-02-01', 4, NOW(), NOW(), 0),
-(2, 0, NULL, 3, NOW(), NOW(), 0);
-
--- 插入采购单明细数据
-INSERT INTO purchase_order_detail (order_id, material_id, quantity, detail_status, create_at, update_at, del_flag) VALUES
-(1, 1, 100, 0, NOW(), NOW(), 0),
-(1, 2, 200, 0, NOW(), NOW(), 0),
-(2, 3, 50, 0, NOW(), NOW(), 0),
-(2, 4, 20, 0, NOW(), NOW(), 0);
-
--- 插入库存记录数据
-INSERT INTO inventory_record (material_id, change_qty, change_type, change_date, manager_id, create_at, update_at, del_flag) VALUES
-(1, 100, 0, '2023-02-02', 4, NOW(), NOW(), 0),
-(2, -50, 1, '2023-02-03', 4, NOW(), NOW(), 0),
-(3, 30, 0, '2023-02-04', 3, NOW(), NOW(), 0);
-
-
--- 插入部门与员工的关联数据（dept_emp）
-INSERT INTO dept_emp (emp_id, dept_id, join_date, create_at, update_at, del_flag) VALUES
-(1, 1, '2024-01-10', NOW(), NOW(), 0),  -- 员工ID 1 加入部门ID 1
-(2, 1, '2024-01-15', NOW(), NOW(), 0),  -- 员工ID 2 加入部门ID 1
-(3, 2, '2024-01-20', NOW(), NOW(), 0),  -- 员工ID 3 加入部门ID 2
-(4, 3, '2024-01-25', NOW(), NOW(), 0),  -- 员工ID 4 加入部门ID 3
-(5, 4, '2024-02-01', NOW(), NOW(), 0);  -- 员工ID 5 加入部门ID 4
-
--- 插入供应商与物料的关联数据（supplier_material）
-INSERT INTO supplier_material (supplier_id, material_id, avg_delivery_days, avg_price, create_at, update_at, del_flag) VALUES
-(1, 1, 3, 0.10, NOW(), NOW(), 0),  -- 供应商ID 1 供应物料ID 1
-(1, 2, 5, 0.50, NOW(), NOW(), 0),  -- 供应商ID 1 供应物料ID 2
-(1, 3, 2, 5.00, NOW(), NOW(), 0),  -- 供应商ID 1 供应物料ID 3
-(2, 4, 7, 20.00, NOW(), NOW(), 0); -- 供应商ID 2 供应物料ID 4
