@@ -216,6 +216,7 @@ CREATE TABLE sys_permission (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     delete_flag BOOLEAN DEFAULT FALSE
 );
+
 -- 系统用户权限表
 CREATE TABLE role_permission_relation (
     role_permission_id INT PRIMARY KEY AUTO_INCREMENT,  -- 自增的主键
